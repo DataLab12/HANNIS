@@ -8,6 +8,7 @@ A python library for high-dimensional indexing and searching
 * [main.py](https://github.com/DataLab12/HANNIS/blob/main/main.py) is an example of indexing and searching.
 * The [read_DEEP.py](https://github.com/DataLab12/HANNIS/blob/main/read_DEEP.py), [read_SIFT.py](https://github.com/DataLab12/HANNIS/blob/main/read_SIFT.py) and [read_glove.py](https://github.com/DataLab12/HANNIS/blob/main/read_glove.py) are the scripts for reading the *.fbin and *.fvecs and glove data.
 * [evaluation.py](https://github.com/DataLab12/HANNIS/blob/main/evaluation.py) contains the evaluation metrics.
+* [filter_outlier.py](https://github.com/DataLab12/HANNIS/blob/main/filter_outlier.py) is the script for filtering outliers during the layering phase.
 * [DOTAsmall.fbin](https://github.com/DataLab12/HANNIS/blob/main/DOTAsmall.fbin) is provided as a sample deep descriptor dataset extracted from DOTA2.0 aerial image dataset using ResNet50.  
 
 ### Algorithm parameters
