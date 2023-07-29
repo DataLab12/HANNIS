@@ -1,34 +1,24 @@
-# SG
-Stratified Graph for Indexing and Search of Large Deep Descriptor Databases
+# Indexing and Searching in high-dimensional deep descriptor databases
 
-A python library for high-dimensional indexing and searching
+hannis.py is a script for indexing and searching in high-dimensional deep descriptor databases that are saved in a hdf5 data format. Here,the results are evaluated based on Precision and Searching time. Precision is measured against sklearn.neighbors' brute search method.
 
-### Python scripts description 
-* [hlg.py](https://github.com/DataLab12/HANNIS/blob/main/hlg.py) contains the algorithm.
-* [main.py](https://github.com/DataLab12/HANNIS/blob/main/main.py) is an example of indexing and searching.
-* The [read_DEEP.py](https://github.com/DataLab12/HANNIS/blob/main/read_DEEP.py), [read_SIFT.py](https://github.com/DataLab12/HANNIS/blob/main/read_SIFT.py) and [read_glove.py](https://github.com/DataLab12/HANNIS/blob/main/read_glove.py) are the scripts for reading the *.fbin and *.fvecs and glove data.
-* [evaluation.py](https://github.com/DataLab12/HANNIS/blob/main/evaluation.py) contains the evaluation metrics.
-* [filter_outlier.py](https://github.com/DataLab12/HANNIS/blob/main/filter_outlier.py) is the script for filtering outliers during the layering phase.
-* [DOTAsmall.fbin](https://github.com/DataLab12/HANNIS/blob/main/DOTAsmall.fbin) is provided as a sample deep descriptor dataset extracted from DOTA2.0 aerial image dataset using ResNet50.  
-
-### Algorithm parameters
-* `ef`- the size of the dynamic list for the nearest neighbors (used during the search). Higher ef leads to more accurate but slower search. `ef` cannot be set lower than the number of queried nearest neighbors `k`. The value `ef` of can be anything between `k` and the size of the dataset.
-* `k`- the number of nearest neighbors to be returned as the result.
-* `m`- the number of bi-directional links created for every new element during construction. Higher `m` works better for high-dimensional dataset. It also determines the index size and performance efficiency.
-
-### How to use the library
-
-* Direct to the folder **HANNIS** and run the `main.py`
-
-```
-cd path/of/HANNIS
-python main.py
-```
-* Input the number of number of nearest neighbor to retrieve.
-
-### Installation
+## Installation
 * numpy
 * sklearn
-* pickle
-* scipy
-* heapq 
+* h5py
+* ml_metrics
+* time
+
+## Cython file build
+Run **setup.py** wth command  **python setup.py build_ext --inplace**
+Move the **kmeanspp.pyx** and **hnsw.pyx** files to **dep** folder
+
+## Indexing and Searching
+
+Step1:  Load the h5/fbin/fvecs data in data_path.  
+Step2:  Input a test frame number (e.g. 100) for h5 or an index number for fbin/fvecs to search  
+Step3:  Enter the number of clusters to build
+Step4:  Input the number of nearest neighbors to return (e.g. 100)  
+Step5:  A folder named 'indexes' will be created for the first time and indexes will be saved inside the folder.  
+Step6:  Enter the number of clusters to load from the indexes.
+Step7:  Repeat Step2 to Step6 to get nearest neighbors for different frames/features.

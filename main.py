@@ -1,114 +1,46 @@
-from random import random
+## import libraries
 import numpy as np
-import time
-from sklearn.neighbors import NearestNeighbors
-import pickle
-import read_DEEP
+
+from sklearn.datasets import make_blobs
+import read_fbin
+import combine_kmeanspp_and_hnsw
 import os
-from sklearn.metrics import precision_score
-import evaluation
-import read_SIFT
-import read_glove
-import hlg
+import time
+
+index_path = 'indexes/'
+index_name = 'hannis'
+if not os.path.exists(index_path):
+    os.system('mkdir indexes')
+
+data_path = './DOTAsmall.fbin'
+
+# Generate dataset
+# vectors, Y = make_blobs(n_samples=500, n_features=30)
+
+vectors,dim = read_fbin.read_fbin(data_path)
+
+print(f'Data shape: {vectors.shape}')
 
 
-# dim = 20
-# num_elements = 1000
-# data = np.array(np.float32(np.random.random((num_elements, dim))))
+ncls =  5           # The number of classes (clusters)
 
-#Parameters
-M = 16
-ef = 100
-filtering_factor = 3
+init = 'k-means++'      # 'k-means++', 'random'
+max_iter = 10           # number of iterations for clustering
+m=16                    # number of neighboring nodes
+ef=200                  # depth of search on a node
 
+k = 10                  # number of nearest neighbors to return
+clus_to_load = 1        # number of clusters to search
 
-data_path = 'DOTAsmall.fbin'
-data,dim = read_DEEP.read_fbin(data_path)
+query = vectors[123]    # sample query vector
 
+centroid_path = index_path + index_name
+if not os.path.exists(centroid_path):
+    combine_kmeanspp_and_hnsw.save_indexes_and_centers(index_name,index_path,vectors,ncls,init,max_iter,m,ef)
 
-quit_cmd = 'a'
-while(quit_cmd != 'q'):
-    n_neighbors = input('Enter the number of nearest neghbors: ')
-    n_neighbors = int(n_neighbors)
+t=time.time()
+predicted = combine_kmeanspp_and_hnsw.search_indexes(index_name,index_path,query,k,clus_to_load)
+print('Total search time: ',time.time()-t)
 
-    query_indexes = [10,20,500,3456,7890]
-
-    print('Data shape: ',data.shape)
-
-
-    t = time.time()
-    index_brute = NearestNeighbors(n_neighbors=n_neighbors, algorithm='brute').fit(data)
-    print('Indexing time for Brute: ', time.time()-t,'seconds')
-
-    index_dir = 'indexes'
-    if not os.path.exists(index_dir):
-        os.system('mkdir indexes')
-    # name = 'demo'
-
-    name = data_path.split('/')[-1][:-5]
-    idx_path = f"indexes/{name}_HLG.ind"
-    index = hlg.HLG('l2', m=M, ef=ef)
-    
-    if not os.path.exists(idx_path):
-        add_point_time = time.time()
-        index.build_index(data,f=filtering_factor)
-        print("hlg indexing time: %f" % (time.time() - add_point_time))
-
-        add_point_time = time.time()
-        with open(idx_path, 'wb') as f:
-            picklestring = pickle.dump(index, f, pickle.HIGHEST_PROTOCOL)
-        print("hlg index saving time: %f" % (time.time() - add_point_time))
-
-
-    add_point_time = time.time()
-    fl = open(idx_path,'rb')
-    index = pickle.load(fl)
-    print("hlg index loading time: %f" % (time.time() - add_point_time))
-
-
-    recall_final = 0
-    precision_final = 0
-    f1_score_final = 0
-    total_search_time = 0
-
-    for q in query_indexes:
-        query = data[q]
-        query = query[None,:]
-        t = time.time()
-        idx_brute = index_brute.kneighbors(query, n_neighbors, return_distance=False)[0]
-        print('Searching time brute: = ', time.time()-t)
-        true = idx_brute.tolist()
-        # print('True IDX:',true)
-
-        add_point_time = time.time()
-        predicted = index.search(query, k=n_neighbors)
-        search_time = time.time()
-        single_query_time = search_time - add_point_time
-        # print('Search time:',single_query_time)
-        total_search_time = total_search_time + single_query_time
-    
-        pred = []
-        for i in predicted:
-            # print('IDX:',i[0])
-            pred.append(i[0])
-        print('TRUE: ',true)
-        print('PRED: ',pred)
-
-        recall = evaluation.recall(true,pred)
-        print('Recall intermediate for ',q,' is: ',recall)
-        recall_final = recall_final + recall
-        precision = evaluation.precision(true,pred)
-        precision_final = precision_final + precision
-        print('Precision intermediate for ',q,' is: ',precision)
-
-    rec = recall_final/len(query_indexes)
-    pre = precision_final/len(query_indexes)
-    f1_score = 2 * (pre* rec) / (pre+ rec)
-    avg_search_time = total_search_time/len(query_indexes)
-    print('Recall @',n_neighbors,' is: ',rec)
-    print('Precision @',n_neighbors,' is: ',pre)
-    print('F1-score @',n_neighbors,' is: ',f1_score)
-    print("Searchtime hlg: ", avg_search_time)
-
-    quit_cmd = input('Enter any key to continue or q to quit: ')
+print('Predicted: ',predicted)
 
